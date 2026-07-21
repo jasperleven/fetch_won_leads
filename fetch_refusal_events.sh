@@ -5,8 +5,8 @@
 
 TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjBlMTQ2YzI3MDk0NTkyMmQxM2JmMGZkMTgzYjU2ZjI4NzI0N2Y3ZDk2NGI3OWRiY2YwNGQ1ZTJjZTQ5YWJkNThmNWY2ZmI1YjM1MTRkYzQ0In0.eyJhdWQiOiIwNDRlYzY0Mi0xMTAxLTRlYzgtOTBiYy03MThjODU1YTZjYmIiLCJqdGkiOiIwZTE0NmMyNzA5NDU5MjJkMTNiZjBmZDE4M2I1NmYyODcyNDdmN2Q5NjRiNzlkYmNmMDRkNWUyY2U0OWFiZDU4ZjVmNmZiNWIzNTE0ZGM0NCIsImlhdCI6MTc4Mjg5NDE1NCwibmJmIjoxNzgyODk0MTU0LCJleHAiOjE4NDM0MzA0MDAsInN1YiI6IjExNDY3MjU4IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxOTI4Mjk4LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiMjM2Mjc0M2UtMDA3NC00ZjJhLWIzMzgtOTc5YjgxZjY1NGFlIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.AC-lkIhD_CIkM9c12WVayoEjolvyTNEpvDkfBY95WyoMjsRaRgn57wkDBl-pOGuNuLkts94DubkkoyAkZjEVZ7AuZyoTuZvyTL5TFYz4cU2tmR0Igy-WdboJcD3AgAdSe1KSb5chmoOX06kqH93cO78H_F_5_u2k4pyWHvLTe2LMwbthXU900UMQFQshLVKTsilaLJviUBfYdscNKd2Un0XedJL8Fiu--lp4BkWWr0oq_71Jy9CETm2U8oUaFW8lkGKezjnLcqXhdma3siZNqICOHFVXLQRAE7k6qvJIfUyCendrepO_rLoMt7ShGQjYB4MDd3lBXSjhK8-Svn1Xsg"
 
-# Начало текущего месяца (01.07.2026 00:00 Минск, UTC+3)
-MONTH_FROM=1783029600   # 01.07.2026 00:00:00 Минск -> UTC 30.06 21:00
+# Начало текущего месяца (01.07.2026 00:00 Минск, UTC+3) — ИСПРАВЛЕНО
+MONTH_FROM=1782853200   # 01.07.2026 00:00:00 Минск -> UTC 30.06 21:00
 
 echo "Начало месяца (проверка): $(date -d @$MONTH_FROM)"
 
@@ -25,6 +25,11 @@ while true; do
     echo "Страница $page: пусто (204) — конец данных."
     break
   fi
+  if [ "$code" == "500" ] || [ "$code" == "429" ] || [ "$code" == "502" ] || [ "$code" == "503" ] || [ "$code" == "504" ]; then
+    echo "Страница $page: ошибка HTTP $code — жду 5 сек и повторяю..."
+    sleep 5
+    continue
+  fi
   if [ "$code" != "200" ]; then
     echo "Страница $page: ошибка HTTP $code"
     cat "$resp"
@@ -39,6 +44,7 @@ while true; do
   fi
 
   page=$((page+1))
+  sleep 1
   if [ "$page" -gt 100 ]; then
     echo "Стоп — подозрительно много страниц (>100), прерываю."
     break
